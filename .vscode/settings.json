@@ -1,0 +1,14 @@
+{
+  "files.watcherExclude": {
+    "**/.git/**": true,
+    "**/env/**": true
+  },
+  "python.condaPath": "~/miniconda3/bin/conda",
+  "python.defaultInterpreterPath": "${workspaceFolder}/env/bin/python3.9",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.activateEnvironment": true,
+  "search.exclude": {
+    "**/.git/**": true,
+    "**/env/**": true
+  }
+}

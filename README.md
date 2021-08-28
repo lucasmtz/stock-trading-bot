@@ -34,8 +34,8 @@ That's it!
 
 ---
 
-- ALP_API_ID=""
-- ALP_SECRET_KEY=""
+- APCA_API_KEY_ID=""
+- APCA_API_SECRET_KEY=""
 - NEWS_API_KEY=""
 
 ---
@@ -58,6 +58,6 @@ Please create an issue if you are having problems getting the repo to work or if
 - Refine buy and selling time
 - Differentiate between long term and short term day trading positions
 
-This repository is constantly getting better so please feel free to work with it and post pull requests if you encounter any bugs or want to add additional functionality. 
+This repository is constantly getting better so please feel free to work with it and post pull requests if you encounter any bugs or want to add additional functionality.
 
 by Aditya Oberai
