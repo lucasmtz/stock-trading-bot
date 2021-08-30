@@ -3,6 +3,7 @@
 import threading
 import time
 from datetime import datetime
+from pytz import timezone
 
 import alpaca as alp
 import constants as const
@@ -14,6 +15,13 @@ import stock_data_gatherer as sdg
 import util
 
 
+def calculate_order_amount(stock_ticker, stock_score):
+    symbol_bars = alpaca.api.get_barset(stock_ticker, 'minute', 1).df.iloc[0]
+    symbol_price = float(symbol_bars[stock_ticker]['close'])
+    buying_power = float(alpaca.api.get_account().buying_power)
+    order_amount = (buying_power*stock_score)//symbol_price
+    return order_amount
+
 def daytrading_stock_analyzer(stocks):
     for stock_ticker in stocks:  # purchases stocks based on daytrading patterns
         try:
@@ -21,7 +29,8 @@ def daytrading_stock_analyzer(stocks):
             stock_score += sa.moving_average_checker(stock_ticker)
             stock_score += sa.volume_checker(stock_ticker)
             if stock_score >= 0.2 and stock_ticker not in all_active_positions.keys():
-                alpaca.create_order(stock_ticker, 1)  # todo: calculate order amount
+                order_amount = calculate_order_amount(stock_ticker, stock_score)
+                alpaca.create_order(stock_ticker, order_amount)  # todo: calculate order amount
                 active_positions_to_check[stock_ticker] = sdg.get_current_stock_data(stock_ticker)["Close"]
                 all_active_positions[stock_ticker] = sdg.get_current_stock_data(stock_ticker)["Close"]
                 print("Based on daytrading pattern analysis, buying", stock_ticker, "Stock Score: ", stock_score)
@@ -36,7 +45,8 @@ def news_stock_analyzer(stock_ticker):
         stock_score += nc.sentiment_analyzer(news.get_news(stock_ticker))
         print(stock_ticker, "news score:", stock_score)
         if stock_score >= 0.35 and stock_ticker not in all_active_positions.keys():
-            alpaca.create_order(stock_ticker, 1)  # todo: calculate order amount
+            order_amount = calculate_order_amount(stock_ticker, stock_score)
+            alpaca.create_order(stock_ticker, order_amount)  # todo: calculate order amount
             active_positions_to_check[stock_ticker] = sdg.get_current_stock_data(stock_ticker)["Close"]
             all_active_positions[stock_ticker] = sdg.get_current_stock_data(stock_ticker)["Close"]
             print("Based on News analysis, buying", stock_ticker)
@@ -69,6 +79,7 @@ def check_perform_sell(stock_ticker, purchase_price):
 if __name__ == "__main__":
 
     # Initializing important stuff
+    tz=timezone('US/Eastern')
     news = news_getter.NewsGetter()
     alpaca = alp.Alpaca()
     active_positions_to_check = {}  # key is stock ticker, value is stock purchase price
@@ -84,9 +95,8 @@ if __name__ == "__main__":
     while True:
         try:
             print("New Iteration of Stock Scanning")
-            current_time = datetime.now().strftime("%H:%M")
-            current_time = "12:01"
-            if current_time > const.STOCK_MARKET_OPEN_TIME and current_time < const.STOCK_MARKET_CLOSE_TIME:
+            current_time = datetime.now(tz).strftime("%H:%M")
+            if alpaca.api.get_clock().is_open and current_time < const.STOCK_MARKET_CLOSE_TIME:
                 if first_time_run:
                     threading.Thread(target=stock_position_analyzer).start()
                     first_time_run = False
