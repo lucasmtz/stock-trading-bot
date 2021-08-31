@@ -12,6 +12,7 @@ def moving_average_checker(ticker_symbol) -> float:
 
 def volume_checker(ticker_symbol) -> float:
     stock_status = sdg.get_current_stock_data(ticker_symbol)
+    print(stock_status)
     try:
         volume = sdg.get_volume_slope(ticker_symbol) / (0.2 * stock_status["Volume"])
     except ZeroDivisionError:

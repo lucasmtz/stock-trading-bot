@@ -28,6 +28,7 @@ def daytrading_stock_analyzer(stocks):
             stock_score = 0
             stock_score += sa.moving_average_checker(stock_ticker)
             stock_score += sa.volume_checker(stock_ticker)
+            print(stock_ticker, "daytrade score:", stock_score)
             if stock_score >= 0.2 and stock_ticker not in all_active_positions.keys():
                 order_amount = calculate_order_amount(stock_ticker, stock_score)
                 alpaca.create_order(stock_ticker, order_amount)  # todo: calculate order amount
@@ -44,6 +45,8 @@ def news_stock_analyzer(stock_ticker):
         stock_score = 0
         stock_score += nc.sentiment_analyzer(news.get_news(stock_ticker))
         print(stock_ticker, "news score:", stock_score)
+        with open('test_scores.csv', 'a+') as f:
+            f.write(f'{stock_ticker},{stock_score}\n')
         if stock_score >= 0.35 and stock_ticker not in all_active_positions.keys():
             order_amount = calculate_order_amount(stock_ticker, stock_score)
             alpaca.create_order(stock_ticker, order_amount)  # todo: calculate order amount
@@ -96,7 +99,9 @@ if __name__ == "__main__":
         try:
             print("New Iteration of Stock Scanning")
             current_time = datetime.now(tz).strftime("%H:%M")
-            if alpaca.api.get_clock().is_open and current_time < const.STOCK_MARKET_CLOSE_TIME:
+            # current_time = "12:00"
+            if current_time < const.STOCK_MARKET_CLOSE_TIME:
+                print("Market Open")
                 if first_time_run:
                     threading.Thread(target=stock_position_analyzer).start()
                     first_time_run = False
@@ -111,6 +116,7 @@ if __name__ == "__main__":
                     news_stock_analyzer(stock_ticker)
                     # threading.Thread(target=news_stock_analyzer, args=(stock_ticker,)).start()
                 time.sleep(360000)
+                print(f'Wainting {360000//60000} for market to open.')
         except Exception as e:
             print(f"__main__ error: {e}")
             print("Restarting")

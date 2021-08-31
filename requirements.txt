@@ -4,6 +4,7 @@ bs4
 certifi
 chardet
 idna
+ipykernel
 newsapi-python
 nltk
 numpy
